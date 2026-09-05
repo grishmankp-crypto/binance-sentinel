@@ -1,6 +1,6 @@
 # ⚡ Binance Sentinel | Agent OS
 
-![Binance Sentinel Banner](https://via.placeholder.com/1200x400/0b0e11/EAB308?text=Binance+Sentinel+|+AI+Market+Intelligence)
+![Binance Sentinel Banner](https://placehold.co/1200x400/0b0e11/EAB308.png?text=Binance+Sentinel+|+AI+Market+Intelligence)
 
 **Binance Sentinel** is an elite, autonomous AI Quantitative Analyst built for the **Binance Agent OS Mini Hackathon**. 
 
