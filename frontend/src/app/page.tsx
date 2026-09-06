@@ -125,22 +125,22 @@ export default function Home() {
             {/* Top Row: Price & Fear/Greed */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Main Price Banner */}
-              <div className="md:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col justify-center items-center relative overflow-hidden h-full">
+              <div className="md:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col justify-center items-center relative overflow-hidden h-full">
                 {loading && <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/20"><div className="h-full bg-yellow-500 w-1/3 animate-pulse"></div></div>}
                 
-                <h2 className="text-5xl font-bold mb-2">{data.ticker?.price ? `$${data.ticker.price.toLocaleString()}` : '---'}</h2>
-                <p className={`text-lg font-medium ${data.ticker?.priceChangePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                <h2 className="text-4xl font-bold mb-1">{data.ticker?.price ? `$${data.ticker.price.toLocaleString()}` : '---'}</h2>
+                <p className={`text-base font-medium ${data.ticker?.priceChangePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {data.ticker?.priceChangePercent >= 0 ? '▲ +' : '▼ '}{data.ticker?.priceChangePercent}% (24h)
                 </p>
                 
-                <div className="mt-6 flex justify-between w-full pt-6 border-t border-gray-800">
+                <div className="mt-4 flex justify-between w-full pt-4 border-t border-gray-800">
                   <div className="text-center w-1/2 border-r border-gray-800">
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Asset</p>
-                    <p className="font-semibold text-gray-300">{asset}</p>
+                    <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-0.5">Asset</p>
+                    <p className="font-semibold text-gray-300 text-sm">{asset}</p>
                   </div>
                   <div className="text-center w-1/2">
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">24h Volume</p>
-                    <p className="font-semibold text-gray-300">{data.ticker?.volume24h ? formatVolume(data.ticker.volume24h) : '---'}</p>
+                    <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-0.5">24h Volume</p>
+                    <p className="font-semibold text-gray-300 text-sm">{data.ticker?.volume24h ? formatVolume(data.ticker.volume24h) : '---'}</p>
                   </div>
                 </div>
               </div>

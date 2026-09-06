@@ -23,10 +23,10 @@ export default function FearAndGreedGauge({ value }: { value: number }) {
   const cy = 100;
   
   return (
-    <div className="bg-[#181a20] border border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center">
-      <h3 className="text-lg font-semibold text-white w-full text-left mb-6">Crypto Fear & Greed Index</h3>
+    <div className="bg-[#181a20] border border-gray-800 rounded-xl p-4 flex flex-col items-center justify-center text-center h-full">
+      <h3 className="text-sm font-semibold text-white w-full text-left mb-2">Crypto Fear & Greed Index</h3>
       
-      <div className="relative w-48 h-28 overflow-hidden mb-2">
+      <div className="relative w-40 h-24 overflow-hidden mb-1">
         {/* SVG Gauge */}
         <svg viewBox="0 0 200 110" className="w-full h-full drop-shadow-lg">
           <defs>
@@ -56,20 +56,16 @@ export default function FearAndGreedGauge({ value }: { value: number }) {
 
         {/* Center Number */}
         <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end">
-          <span className="text-4xl font-bold text-white leading-none">{value}</span>
+          <span className="text-3xl font-bold text-white leading-none">{value}</span>
         </div>
       </div>
       
-      <span className={`text-xl font-bold ${color} mt-2 tracking-wide`}>{label}</span>
+      <span className={`text-lg font-bold ${color} tracking-wide`}>{label}</span>
       
-      <div className="w-full mt-8 flex justify-between items-center text-sm">
-        <div className="w-1/2 bg-[#ff4d4d] text-white text-center py-1.5 rounded-l-md font-semibold opacity-90">Bearish</div>
-        <div className="w-1/2 bg-[#2ebd85] text-white text-center py-1.5 rounded-r-md font-semibold opacity-90">Bullish</div>
+      <div className="w-full mt-3 flex justify-between items-center text-[10px]">
+        <div className="w-1/2 bg-[#ff4d4d] text-white text-center py-1 rounded-l-md font-semibold opacity-90">Bearish</div>
+        <div className="w-1/2 bg-[#2ebd85] text-white text-center py-1 rounded-r-md font-semibold opacity-90">Bullish</div>
       </div>
-      
-      <p className="text-xs text-gray-500 mt-6 text-left leading-relaxed">
-        The index ranges from 0 (Extreme Fear) to 100 (Extreme Greed). A low value signals overselling, while a high value suggests market FOMO.
-      </p>
     </div>
   );
 }
