@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Activity, TrendingUp, AlertTriangle, MessageSquare, Clock, ArrowRight, Zap, ArrowUpRight, ArrowDownRight, ShieldAlert, BarChart3, Send } from 'lucide-react';
+import { Activity, TrendingUp, AlertTriangle, MessageSquare, Clock, ArrowRight, Zap, ArrowUpRight, ArrowDownRight, ShieldAlert, BarChart3, Send, Target } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 
@@ -254,6 +254,32 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Liquidation Clusters */}
+            {data.synthesis?.liquidation_clusters && (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Target className="text-yellow-500" size={20} />
+                    <h3 className="text-lg font-semibold text-white">Liquidation Heatmap</h3>
+                  </div>
+                  <span className="text-xs text-gray-500 uppercase tracking-wider">High Leverage Clusters</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {data.synthesis.liquidation_clusters.map((cluster: any, idx: number) => (
+                    <div key={idx} className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50 flex flex-col items-center justify-center text-center hover:bg-gray-800 transition-colors">
+                      <span className={`text-xl font-bold mb-1 ${cluster.type === 'SHORT' ? 'text-red-400' : 'text-green-400'}`}>
+                        {cluster.price}
+                      </span>
+                      <span className="text-xs text-gray-400 font-semibold mb-3">{cluster.leverage}</span>
+                      <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                        <div className={`h-full ${cluster.intensity === 'HIGH' ? 'bg-yellow-500' : cluster.intensity === 'MEDIUM' ? 'bg-yellow-500/50' : 'bg-yellow-500/20'}`} style={{ width: cluster.intensity === 'HIGH' ? '100%' : cluster.intensity === 'MEDIUM' ? '66%' : '33%' }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Live News Feed */}
             {data.sentiment?.articles && data.sentiment.articles.length > 0 && (

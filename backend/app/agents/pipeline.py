@@ -104,6 +104,12 @@ async def synthesis_agent(state: AgentState):
             "bear_case": ["Funding is elevated", "Resistance nearby"],
             "invalidation": "Loss of EMA 50",
             "ai_verdict": "Bullish bias with moderate risk.",
+            "liquidation_clusters": [
+                {"price": f"${current_price * 1.05:,.0f}", "leverage": "50x-100x Short", "intensity": "HIGH", "type": "SHORT"},
+                {"price": f"${current_price * 1.02:,.0f}", "leverage": "25x Short", "intensity": "MEDIUM", "type": "SHORT"},
+                {"price": f"${current_price * 0.96:,.0f}", "leverage": "25x Long", "intensity": "HIGH", "type": "LONG"},
+                {"price": f"${current_price * 0.92:,.0f}", "leverage": "50x Long", "intensity": "LOW", "type": "LONG"}
+            ],
             "signal": {
                 "action": "BUY",
                 "entry": formatted_entry,
