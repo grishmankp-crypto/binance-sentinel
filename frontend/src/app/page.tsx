@@ -121,19 +121,32 @@ export default function Home() {
           
           {/* Main Dashboard (Left) */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
-            {/* Main Price Banner */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex justify-between items-center relative overflow-hidden">
-              {loading && <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/20"><div className="h-full bg-yellow-500 w-1/3 animate-pulse"></div></div>}
-              <div>
-                <h2 className="text-3xl font-bold">{data.ticker?.price ? `$${data.ticker.price.toLocaleString()}` : '---'}</h2>
-                <p className={`text-sm ${data.ticker?.priceChangePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {data.ticker?.priceChangePercent >= 0 ? '+' : ''}{data.ticker?.priceChangePercent}% (24h)
+            
+            {/* Top Row: Price & Fear/Greed */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Main Price Banner */}
+              <div className="md:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col justify-center items-center relative overflow-hidden h-full">
+                {loading && <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/20"><div className="h-full bg-yellow-500 w-1/3 animate-pulse"></div></div>}
+                
+                <h2 className="text-5xl font-bold mb-2">{data.ticker?.price ? `$${data.ticker.price.toLocaleString()}` : '---'}</h2>
+                <p className={`text-lg font-medium ${data.ticker?.priceChangePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {data.ticker?.priceChangePercent >= 0 ? '▲ +' : '▼ '}{data.ticker?.priceChangePercent}% (24h)
                 </p>
+                
+                <div className="mt-6 flex justify-between w-full pt-6 border-t border-gray-800">
+                  <div className="text-center w-1/2 border-r border-gray-800">
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Asset</p>
+                    <p className="font-semibold text-gray-300">{asset}</p>
+                  </div>
+                  <div className="text-center w-1/2">
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">24h Volume</p>
+                    <p className="font-semibold text-gray-300">{data.ticker?.volume24h ? formatVolume(data.ticker.volume24h) : '---'}</p>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-gray-400 text-sm">24h Volume</p>
-                <p className="font-semibold text-lg">{data.ticker?.volume24h ? formatVolume(data.ticker.volume24h) : '---'}</p>
-              </div>
+
+              {/* Fear & Greed Gauge */}
+              <FearAndGreedGauge value={data.sentiment.overall_score || 75} />
             </div>
 
             {/* TradingView Chart */}
@@ -271,43 +284,35 @@ export default function Home() {
               </div>
             )}
 
-            {/* Bottom Section: Fear & Greed + Live News Feed */}
+            {/* Bottom Section: Live News Feed */}
             {data.sentiment?.articles && data.sentiment.articles.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                
-                {/* Fear & Greed Gauge */}
-                <FearAndGreedGauge value={data.sentiment.overall_score || 75} />
-
-                {/* Live News Feed */}
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col h-full">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Activity className="text-yellow-500" size={20} />
-                    <h3 className="text-lg font-semibold text-white">Live Market News</h3>
-                    <span className="ml-2 text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full border border-green-500/20 flex items-center space-x-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                      <span>LIVE</span>
-                    </span>
-                  </div>
-                  <div className="space-y-3 flex-grow overflow-y-auto pr-2 custom-scrollbar">
-                    {data.sentiment.articles.slice(0, 4).map((article: any, idx: number) => (
-                      <a 
-                        key={idx} 
-                        href={article.link} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="block bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg p-3 transition-colors"
-                      >
-                        <h4 className="text-sm font-medium text-gray-200 mb-1 leading-snug line-clamp-2">{article.title}</h4>
-                        <div className="flex items-center text-xs text-gray-500 space-x-3">
-                          <span className="text-yellow-500/80">{article.source}</span>
-                          <span>•</span>
-                          <span>{new Date(article.published).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Activity className="text-yellow-500" size={20} />
+                  <h3 className="text-lg font-semibold text-white">Live Market News</h3>
+                  <span className="ml-2 text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full border border-green-500/20 flex items-center space-x-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <span>LIVE</span>
+                  </span>
                 </div>
-
+                <div className="space-y-3">
+                  {data.sentiment.articles.map((article: any, idx: number) => (
+                    <a 
+                      key={idx} 
+                      href={article.link} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="block bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg p-4 transition-colors"
+                    >
+                      <h4 className="text-sm font-medium text-gray-200 mb-1 leading-snug">{article.title}</h4>
+                      <div className="flex items-center text-xs text-gray-500 space-x-3">
+                        <span className="text-yellow-500/80">{article.source}</span>
+                        <span>•</span>
+                        <span>{new Date(article.published).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
 
