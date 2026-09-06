@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 
 const TradingChart = dynamic(() => import('../components/TradingChart'), { ssr: false });
 import HeatmapSimulator from '../components/HeatmapSimulator';
+import FearAndGreedGauge from '../components/FearAndGreedGauge';
 
 export default function Home() {
   const [data, setData] = useState<any>(null);
@@ -270,35 +271,43 @@ export default function Home() {
               </div>
             )}
 
-            {/* Live News Feed */}
+            {/* Bottom Section: Fear & Greed + Live News Feed */}
             {data.sentiment?.articles && data.sentiment.articles.length > 0 && (
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Activity className="text-yellow-500" size={20} />
-                  <h3 className="text-lg font-semibold text-white">Live Market News</h3>
-                  <span className="ml-2 text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full border border-green-500/20 flex items-center space-x-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                    <span>LIVE</span>
-                  </span>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                
+                {/* Fear & Greed Gauge */}
+                <FearAndGreedGauge value={data.sentiment.overall_score || 75} />
+
+                {/* Live News Feed */}
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col h-full">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Activity className="text-yellow-500" size={20} />
+                    <h3 className="text-lg font-semibold text-white">Live Market News</h3>
+                    <span className="ml-2 text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full border border-green-500/20 flex items-center space-x-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                      <span>LIVE</span>
+                    </span>
+                  </div>
+                  <div className="space-y-3 flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                    {data.sentiment.articles.slice(0, 4).map((article: any, idx: number) => (
+                      <a 
+                        key={idx} 
+                        href={article.link} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="block bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg p-3 transition-colors"
+                      >
+                        <h4 className="text-sm font-medium text-gray-200 mb-1 leading-snug line-clamp-2">{article.title}</h4>
+                        <div className="flex items-center text-xs text-gray-500 space-x-3">
+                          <span className="text-yellow-500/80">{article.source}</span>
+                          <span>•</span>
+                          <span>{new Date(article.published).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {data.sentiment.articles.map((article: any, idx: number) => (
-                    <a 
-                      key={idx} 
-                      href={article.link} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="block bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 rounded-lg p-4 transition-colors"
-                    >
-                      <h4 className="text-sm font-medium text-gray-200 mb-1 leading-snug">{article.title}</h4>
-                      <div className="flex items-center text-xs text-gray-500 space-x-3">
-                        <span className="text-yellow-500/80">{article.source}</span>
-                        <span>•</span>
-                        <span>{new Date(article.published).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
+
               </div>
             )}
 
