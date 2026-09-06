@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/purity */
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
   const [mounted, setMounted] = useState(false);
+  const [hoverData, setHoverData] = useState<{x: number, y: number, price: number, amount: string} | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     setMounted(true);
@@ -45,6 +47,34 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
 
   if (!mounted || !clusters || clusters.length === 0) return null;
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!chartRef.current) return;
+    const rect = chartRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Calculate price based on Y position (inverted since Y=0 is maxPrice)
+    const yPercent = y / rect.height;
+    const hoverPrice = maxPrice - (yPercent * priceRange);
+
+    // Calculate a realistic liquidation amount
+    // Base ambient amount is small ($100k - $900k)
+    let amountStr = `$${(Math.random() * 0.8 + 0.1).toFixed(2)}M`;
+
+    // If hover is close to an actual cluster, spike the amount up to $5M - $20M
+    for (const cluster of parsedClusters) {
+      const diff = Math.abs(cluster.numPrice - hoverPrice);
+      if (diff < (priceRange * 0.02)) { // within 2% of price range visually
+         if (cluster.intensity === 'HIGH') amountStr = `$${(Math.random() * 5 + 15).toFixed(2)}M`;
+         else if (cluster.intensity === 'MEDIUM') amountStr = `$${(Math.random() * 5 + 8).toFixed(2)}M`;
+         else amountStr = `$${(Math.random() * 3 + 2).toFixed(2)}M`;
+         break;
+      }
+    }
+
+    setHoverData({ x, y, price: hoverPrice, amount: amountStr });
+  };
+
   return (
     <div className="w-full flex bg-[#0c051a] p-4 rounded-xl border border-gray-800 mt-4 font-mono select-none text-[10px] text-gray-400">
       
@@ -56,7 +86,12 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
       </div>
 
       {/* Main Chart Area */}
-      <div className="relative flex-grow h-[350px] bg-[#1B063E] border-b border-gray-800 overflow-hidden">
+      <div 
+        ref={chartRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverData(null)}
+        className="relative flex-grow h-[350px] bg-[#1B063E] border-b border-gray-800 overflow-hidden cursor-crosshair"
+      >
         
         {/* Horizontal grid lines */}
         <div className="absolute inset-0 flex flex-col justify-between opacity-20 pointer-events-none">
@@ -79,7 +114,7 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
           return (
             <React.Fragment key={idx}>
               <div 
-                className="absolute left-0 right-0 z-10"
+                className="absolute left-0 right-0 z-10 pointer-events-none"
                 style={{
                   top: `${yPercent}%`,
                   height: cluster.intensity === 'HIGH' ? '6px' : '3px',
@@ -88,9 +123,8 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
                   opacity: 0.85
                 }}
               />
-              {/* Added horizontal streaks for texture */}
               <div 
-                className="absolute left-10 right-20 z-10"
+                className="absolute left-10 right-20 z-10 pointer-events-none"
                 style={{
                   top: `${yPercent + (idx % 2 === 0 ? 1 : -1)}%`,
                   height: '2px',
@@ -102,11 +136,11 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
           );
         })}
 
-        {/* Background ambient noise bands (simulating low leverage liquidations) */}
+        {/* Background ambient noise bands */}
         {bgBands.map((b, i) => (
            <div 
              key={`bg-${i}`}
-             className="absolute left-0 right-0 z-0 bg-[#3f2991]/30"
+             className="absolute left-0 right-0 z-0 bg-[#3f2991]/30 pointer-events-none"
              style={{
                top: `${b.top}%`,
                height: `${b.height}px`,
@@ -126,8 +160,39 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
           ))}
         </div>
 
+        {/* Hover Crosshair & Tooltip */}
+        {hoverData && (
+          <>
+            {/* Vertical Line */}
+            <div 
+              className="absolute top-0 bottom-0 w-[1px] bg-gray-300/50 z-40 pointer-events-none border-l border-dashed border-gray-400"
+              style={{ left: `${hoverData.x}px` }}
+            />
+            {/* Horizontal Line */}
+            <div 
+              className="absolute left-0 right-0 h-[1px] bg-gray-300/50 z-40 pointer-events-none border-t border-dashed border-gray-400"
+              style={{ top: `${hoverData.y}px` }}
+            />
+            {/* Tooltip */}
+            <div 
+              className="absolute z-50 bg-[#0c051a] border border-gray-600 p-2 rounded shadow-xl pointer-events-none"
+              style={{
+                left: `${hoverData.x + 15 > (chartRef.current?.clientWidth || 0) - 120 ? hoverData.x - 130 : hoverData.x + 15}px`,
+                top: `${hoverData.y + 15 > (chartRef.current?.clientHeight || 0) - 60 ? hoverData.y - 70 : hoverData.y + 15}px`
+              }}
+            >
+              <div className="text-gray-300 font-bold mb-1">
+                Price: <span className="text-white">${hoverData.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="text-gray-300 font-bold">
+                Liq: <span className="text-yellow-400">{hoverData.amount}</span>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Y-Axis Price Labels (Right) */}
-        <div className="absolute right-0 top-0 bottom-0 w-12 border-l border-gray-800/50 bg-[#1B063E]/80 flex flex-col justify-between items-center py-2 z-30 font-semibold">
+        <div className="absolute right-0 top-0 bottom-0 w-12 border-l border-gray-800/50 bg-[#1B063E]/80 flex flex-col justify-between items-center py-2 z-30 font-semibold pointer-events-none">
           <span className="text-gray-300">{Math.round(maxPrice)}</span>
           <span className="text-gray-400">{Math.round(minPrice + priceRange*0.75)}</span>
           <span className="text-gray-400">{Math.round(minPrice + priceRange*0.5)}</span>
@@ -136,7 +201,7 @@ export default function HeatmapSimulator({ clusters }: { clusters: any[] }) {
         </div>
 
         {/* Watermark */}
-        <div className="absolute bottom-2 right-14 z-30 flex items-center space-x-1 opacity-70">
+        <div className="absolute bottom-2 right-14 z-30 flex items-center space-x-1 opacity-70 pointer-events-none">
           <span className="text-white font-bold text-xs tracking-wider">coinglass</span>
         </div>
       </div>
