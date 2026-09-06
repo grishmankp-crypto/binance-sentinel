@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 
 const TradingChart = dynamic(() => import('../components/TradingChart'), { ssr: false });
+import HeatmapSimulator from '../components/HeatmapSimulator';
 
 export default function Home() {
   const [data, setData] = useState<any>(null);
@@ -265,19 +266,7 @@ export default function Home() {
                   </div>
                   <span className="text-xs text-gray-500 uppercase tracking-wider">High Leverage Clusters</span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {data.synthesis.liquidation_clusters.map((cluster: any, idx: number) => (
-                    <div key={idx} className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50 flex flex-col items-center justify-center text-center hover:bg-gray-800 transition-colors">
-                      <span className={`text-xl font-bold mb-1 ${cluster.type === 'SHORT' ? 'text-red-400' : 'text-green-400'}`}>
-                        {cluster.price}
-                      </span>
-                      <span className="text-xs text-gray-400 font-semibold mb-3">{cluster.leverage}</span>
-                      <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                        <div className={`h-full ${cluster.intensity === 'HIGH' ? 'bg-yellow-500' : cluster.intensity === 'MEDIUM' ? 'bg-yellow-500/50' : 'bg-yellow-500/20'}`} style={{ width: cluster.intensity === 'HIGH' ? '100%' : cluster.intensity === 'MEDIUM' ? '66%' : '33%' }}></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <HeatmapSimulator clusters={data.synthesis.liquidation_clusters} />
               </div>
             )}
 
