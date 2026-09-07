@@ -84,40 +84,58 @@ async def synthesis_agent(state: AgentState):
         return {"synthesis": {"error": state["error"]}}
         
     if not llm:
-        # Mock Synthesis if no LLM - But use actual live Binance prices for the demo!
-        ticker = state.get("ticker", {})
-        current_price = ticker.get("price", 64000.0)
-        
-        # Calculate dynamic SL and TP (e.g. 3% stop loss, 8% take profit)
-        sl_price = current_price * 0.97
-        tp_price = current_price * 1.08
-        
-        # Format strings neatly
-        formatted_entry = f"${current_price:,.2f}" if current_price >= 1 else f"${current_price:,.4f}"
-        formatted_sl = f"${sl_price:,.2f}" if sl_price >= 1 else f"${sl_price:,.4f}"
-        formatted_tp = f"${tp_price:,.2f}" if tp_price >= 1 else f"${tp_price:,.4f}"
-
-        return {"synthesis": {
-            "bias": "BULLISH",
-            "confidence": 81,
-            "bull_case": ["EMA trend is positive", "Volume expanding"],
-            "bear_case": ["Funding is elevated", "Resistance nearby"],
-            "invalidation": "Loss of EMA 50",
-            "ai_verdict": "Bullish bias with moderate risk.",
-            "liquidation_clusters": [
-                {"price": f"${current_price * 1.05:,.0f}", "leverage": "50x-100x Short", "intensity": "HIGH", "type": "SHORT"},
-                {"price": f"${current_price * 1.02:,.0f}", "leverage": "25x Short", "intensity": "MEDIUM", "type": "SHORT"},
-                {"price": f"${current_price * 0.96:,.0f}", "leverage": "25x Long", "intensity": "HIGH", "type": "LONG"},
-                {"price": f"${current_price * 0.92:,.0f}", "leverage": "50x Long", "intensity": "LOW", "type": "LONG"}
-            ],
-            "signal": {
-                "action": "BUY",
-                "entry": formatted_entry,
-                "stop_loss": formatted_sl,
-                "take_profit": formatted_tp,
-                "reasoning": "Strong positive news sentiment combined with EMA support offsets the moderate derivatives risk."
-            }
-        }}
+          # Mock Synthesis if no LLM - But use actual live Binance prices for the demo!
+          ticker = state.get("ticker", {})
+          current_price = ticker.get("price", 64000.0)
+          
+          # Get dynamic regime to determine signal direction
+          regime_data = state.get("regime", {})
+          regime_str = regime_data.get("regime", "BULLISH_TREND")
+          
+          is_bearish = "BEARISH" in regime_str
+          
+          # Calculate dynamic SL and TP based on trend
+          if is_bearish:
+              bias = "BEARISH"
+              action = "SELL"
+              sl_price = current_price * 1.03  # SL above for short
+              tp_price = current_price * 0.92  # TP below for short
+              verdict = "Bearish bias confirmed by technical alignment. Selling rallies recommended."
+              reasoning = "Negative EMA alignment and momentum indicate continued downside. Shorting resistance."
+          else:
+              bias = "BULLISH"
+              action = "BUY"
+              sl_price = current_price * 0.97  # SL below for long
+              tp_price = current_price * 1.08  # TP above for long
+              verdict = "Bullish bias with moderate risk."
+              reasoning = "Strong positive news sentiment combined with EMA support offsets the moderate derivatives risk."
+          
+          # Format strings neatly
+          formatted_entry = f"${current_price:,.2f}" if current_price >= 1 else f"${current_price:,.4f}"
+          formatted_sl = f"${sl_price:,.2f}" if sl_price >= 1 else f"${sl_price:,.4f}"
+          formatted_tp = f"${tp_price:,.2f}" if tp_price >= 1 else f"${tp_price:,.4f}"
+  
+          return {"synthesis": {
+              "bias": bias,
+              "confidence": regime_data.get("confidence", 81),
+              "bull_case": ["EMA trend is positive", "Volume expanding"] if not is_bearish else ["Oversold bounce potential"],
+              "bear_case": ["Funding is elevated", "Resistance nearby"] if not is_bearish else ["EMA alignment is negative", "Weak momentum"],
+              "invalidation": "Loss of EMA 50" if not is_bearish else "Breakout above EMA 50",
+              "ai_verdict": verdict,
+              "liquidation_clusters": [
+                  {"price": f"${current_price * 1.05:,.0f}", "leverage": "50x-100x Short", "intensity": "HIGH", "type": "SHORT"},
+                  {"price": f"${current_price * 1.02:,.0f}", "leverage": "25x Short", "intensity": "MEDIUM", "type": "SHORT"},
+                  {"price": f"${current_price * 0.96:,.0f}", "leverage": "25x Long", "intensity": "HIGH", "type": "LONG"},
+                  {"price": f"${current_price * 0.92:,.0f}", "leverage": "50x Long", "intensity": "LOW", "type": "LONG"}
+              ],
+              "signal": {
+                  "action": action,
+                  "entry": formatted_entry,
+                  "stop_loss": formatted_sl,
+                  "take_profit": formatted_tp,
+                  "reasoning": reasoning
+              }
+          }}
 
     prompt = PromptTemplate.from_template("""
     You are a Senior AI Market Analyst for Binance Sentinel.
