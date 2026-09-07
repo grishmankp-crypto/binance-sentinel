@@ -93,6 +93,7 @@ async def synthesis_agent(state: AgentState):
           regime_str = regime_data.get("regime", "BULLISH_TREND")
           
           is_bearish = "BEARISH" in regime_str
+          is_sideways = "SIDEWAYS" in regime_str or "UNKNOWN" in regime_str
           
           # Calculate dynamic SL and TP based on trend
           if is_bearish:
@@ -102,6 +103,13 @@ async def synthesis_agent(state: AgentState):
               tp_price = current_price * 0.92  # TP below for short
               verdict = "Bearish bias confirmed by technical alignment. Selling rallies recommended."
               reasoning = "Negative EMA alignment and momentum indicate continued downside. Shorting resistance."
+          elif is_sideways:
+              bias = "NEUTRAL"
+              action = "HOLD"
+              sl_price = current_price * 0.95  
+              tp_price = current_price * 1.05  
+              verdict = "Market is ranging. Await clearer trend confirmation."
+              reasoning = "Momentum is flat and EMA alignment is neutral. Avoid heavy directional bets."
           else:
               bias = "BULLISH"
               action = "BUY"
@@ -118,9 +126,9 @@ async def synthesis_agent(state: AgentState):
           return {"synthesis": {
               "bias": bias,
               "confidence": regime_data.get("confidence", 81),
-              "bull_case": ["EMA trend is positive", "Volume expanding"] if not is_bearish else ["Oversold bounce potential"],
-              "bear_case": ["Funding is elevated", "Resistance nearby"] if not is_bearish else ["EMA alignment is negative", "Weak momentum"],
-              "invalidation": "Loss of EMA 50" if not is_bearish else "Breakout above EMA 50",
+              "bull_case": ["EMA trend is positive", "Volume expanding"] if bias == "BULLISH" else ["Oversold bounce potential"] if bias == "BEARISH" else ["Potential for range breakout"],
+              "bear_case": ["Funding is elevated", "Resistance nearby"] if bias == "BULLISH" else ["EMA alignment is negative", "Weak momentum"] if bias == "BEARISH" else ["Choppy price action"],
+              "invalidation": "Loss of EMA 50" if bias == "BULLISH" else "Breakout above EMA 50" if bias == "BEARISH" else "Breakout of current range",
               "ai_verdict": verdict,
               "liquidation_clusters": [
                   {"price": f"${current_price * 1.05:,.0f}", "leverage": "50x-100x Short", "intensity": "HIGH", "type": "SHORT"},
